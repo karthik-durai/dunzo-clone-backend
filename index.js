@@ -3,11 +3,11 @@ const app = express()
 const bodyParser = require('body-parser')
 const cors = require('cors')
 
+const usersRoute = require('./api/routes/users')
+
 app.use(bodyParser.json())
 app.use(cors())
 
-app.listen(8000, () => console.log('listening on port 8000'))
+app.use('/api/users', usersRoute)
 
-app.post('/authtoken', (req, res) => {
-  console.log(req.body)
-})
+app.listen(8000, () => console.log('listening on port 8000'))
