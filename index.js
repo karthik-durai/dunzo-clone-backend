@@ -2,13 +2,16 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const cors = require('cors')
+const path = require('path')
 
 const usersRoute = require('./api/routes/users')
 
 app.use(bodyParser.json())
 app.use(cors())
 
-app.use('/', usersRoute)
+app.use('/', express.static(path.join(__dirname, 'view', 'public')))
+
+//  app.use('/', usersRoute)
 app.use('/user', usersRoute)
 //  app.use('/api/users', usersRoute)
 
