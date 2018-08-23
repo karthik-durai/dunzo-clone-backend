@@ -11,8 +11,4 @@ app.use(cors())
 
 app.use('/', express.static(path.join(__dirname, 'view', 'public')))
 
-//  app.use('/', usersRoute)
-app.use('/user', usersRoute)
-//  app.use('/api/users', usersRoute)
-
 app.listen(8000, () => console.log('listening on port 8000'))
