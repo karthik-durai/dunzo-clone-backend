@@ -31,14 +31,15 @@ function sendSigninLink (req, res) {
 function getToken (req, res) {
   oauth2Client.getToken(req.query.code).then(obj => {
     oauth2Client.setCredentials(obj.tokens)
-    oauth2.userinfo.v2.me.get((err, res) => {
+    oauth2.userinfo.v2.me.get((err, result) => {
       if (err) {
         console.error(err)
       } else {
-        console.log(res)
+        console.log(result)
+        res.status(200).json({message: 'login successfull'})
       }
     })
   })
 }
 
-module.exports = { getToken, sendSigninLink }
+module.exports = { getToken, sendSigninLink, url }
