@@ -1,5 +1,7 @@
-const {clientCredentials} = require('../../googleOauthCredentials')
+const {clientCredentials} = require('../../secrets/googleOauthCredentials')
 const {google} = require('googleapis')
+const { privateKey } = require('../../secrets/jwtPrivateKey')
+const jwt = require('jsonwebtoken')
 
 const redirectURI = 'http://localhost:8000/user/oauthcallback'
 
@@ -28,17 +30,33 @@ function sendSigninLink (req, res) {
   console.log(url)
 }
 
-function getToken (req, res) {
-  oauth2Client.getToken(req.query.code).then(obj => {
-    oauth2Client.setCredentials(obj.tokens)
-    oauth2.userinfo.v2.me.get((err, result) => {
-      if (err) {
-        console.error(err)
-      } else {
-        console.log(result)
-        res.status(200).json({message: 'login successfull'})
-      }
-    })
+async function getToken (req, res) {
+  try {
+    let tokenObj = await oauth2Client.getToken(req.query.code)
+    oauth2Client.setCredentials(tokenObj.tokens)
+  } catch (error) {
+    console.log(error)
+  }
+  oauth2.userinfo.v2.me.get(handleUserInfo)
+}
+
+function handleUserInfo (error, info) {
+  if (error) {
+    console.error(error)
+  } else {
+    console.log(info.data)
+    let token = generateJWT(info.data)
+  }
+}
+
+function generateJWT (userinfo) {
+  jwt.sign({name: userinfo.name, email: userinfo.email}, privateKey, null, (err, token) => {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log(token)
+      return token
+    }
   })
 }
 
