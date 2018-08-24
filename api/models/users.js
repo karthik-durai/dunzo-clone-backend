@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   emailID: { type: String, required: true },
   currentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   pastOrders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
-  jwt: { type: String, required: true, default: null }
+  jwt: { type: String, default: null }
 })
 
-module.exports = mongoose.Model('User', userSchema)
+module.exports = mongoose.model('User', userSchema)
