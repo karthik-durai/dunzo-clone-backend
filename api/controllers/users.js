@@ -27,8 +27,8 @@ const url = oauth2Client.generateAuthUrl({
   scope: scopes
 })
 
-function sendSigninLink (req, res) {
-  console.log(url)
+function placeOrder (req, res) {
+  console.log(req.isSignedIn)
 }
 
 async function getToken (req, res) {
@@ -42,7 +42,6 @@ async function getToken (req, res) {
 }
 
 async function handleUserInfo (error, info, req, res) {
-  console.log(req.cookies)
   if (error) {
     console.error(error)
   } else {
@@ -56,18 +55,23 @@ async function handleUserInfo (error, info, req, res) {
 
 async function handleUserRecord (userinfo, token) {
   try {
-    let user = new User({
-      name: userinfo.name,
-      emailID: userinfo.email,
-      jwt: token
-    })
-    let result = await user.save()
-    console.log(result)
-    return result
+    let dbSearch = (await User.findOne({ emailID: userinfo.email }).exec())
+    if (!dbSearch) {
+      let user = new User({
+        name: userinfo.name,
+        emailID: userinfo.email,
+        profilePicture: userinfo.picture,
+        jwt: token
+      })
+      let result = await user.save()
+      console.log(result)
+      return result
+    }
+    console.log('user exist')
   } catch (error) {
     console.error(error)
     return error
   }
 }
 
-module.exports = { getToken, sendSigninLink, url }
+module.exports = { getToken, placeOrder, url }
