@@ -1,6 +1,6 @@
 const {clientCredentials} = require('../../secrets/googleOauthCredentials')
 const {google} = require('googleapis')
-const { privateKey } = require('../../secrets/jwtPrivateKey')
+const {privateKey} = require('../../secrets/jwtPrivateKey')
 const jwt = require('jsonwebtoken')
 const User = require('../models/users')
 
@@ -28,7 +28,11 @@ const url = oauth2Client.generateAuthUrl({
 })
 
 function placeOrder (req, res) {
-  console.log(req.isSignedIn)
+  if (req.isSignedIn) {
+    res.status(200).json({ message: 'you can place your order' })
+  } else {
+    res.status(401).json({ message: 'looks like you are not signed in, please sign in to continue', link: url })
+  }
 }
 
 async function getToken (req, res) {
@@ -49,7 +53,7 @@ async function handleUserInfo (error, info, req, res) {
     let token = jwt.sign({name: info.data.name, email: info.data.email}, privateKey)
     let result = await handleUserRecord(info.data, token)
     res.cookie('access_token', token, { httpOnly: true })
-    res.status(200).json({ message: 'login successful', result })
+    res.status(200).json(result)
   }
 }
 
@@ -65,13 +69,21 @@ async function handleUserRecord (userinfo, token) {
       })
       let result = await user.save()
       console.log(result)
-      return result
+      return ({ message: 'login successful', redirectTo: 'http://localhost:8000/user/placeOrder' })
     }
-    console.log('user exist')
+    return ({ message: 'login successful', redirectTo: 'http://localhost:8000/user/placeOrder' })
   } catch (error) {
     console.error(error)
-    return error
+    return ({ message: 'login not successful, click on the link to try again', link: url })
   }
 }
 
-module.exports = { getToken, placeOrder, url }
+function signout (req, res) {
+  if (req.isSignedIn) {
+    res.status(200).json({ message: 'you have been logged out successfully, to login please click on the link', link: url })
+  } else {
+    res.status(401).json({ message: 'you are not logged in and you can login by clicking on the link', link: url })
+  }
+}
+
+module.exports = { getToken, placeOrder, url, signout }
