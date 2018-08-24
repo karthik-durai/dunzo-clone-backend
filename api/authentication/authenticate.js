@@ -15,11 +15,8 @@ async function authenticate (req, res, next) {
 async function checkForJWT (userinfo) {
   try {
     let searchResult = (await User.findOne({ emailID: userinfo.email }).exec())
-    if (searchResult) {
-      if (searchResult.jwt) {
-        return true
-      }
-      return false
+    if (searchResult && searchResult.jwt) {
+      return true
     }
     return false
   } catch (error) {
