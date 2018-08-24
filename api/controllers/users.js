@@ -2,6 +2,7 @@ const {clientCredentials} = require('../../secrets/googleOauthCredentials')
 const {google} = require('googleapis')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const jwt = require('jsonwebtoken')
+const User = require('../models/users')
 
 const redirectURI = 'http://localhost:8000/user/oauthcallback'
 
@@ -45,19 +46,23 @@ function handleUserInfo (error, info) {
     console.error(error)
   } else {
     console.log(info.data)
-    let token = generateJWT(info.data)
+    let token = jwt.sign({name: info.data.name, email: info.data.email}, privateKey)
+    handleUserRecord(info.data, token)
   }
 }
 
-function generateJWT (userinfo) {
-  jwt.sign({name: userinfo.name, email: userinfo.email}, privateKey, null, (err, token) => {
-    if (err) {
-      console.log(err)
-    } else {
-      console.log(token)
-      return token
-    }
-  })
+async function handleUserRecord (userinfo, token) {
+  try {
+    let user = new User({
+      name: userinfo.name,
+      emailID: userinfo.email,
+      jwt: token
+    })
+    let result = await user.save()
+    console.log(result)
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 module.exports = { getToken, sendSigninLink, url }
