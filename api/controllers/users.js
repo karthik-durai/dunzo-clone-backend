@@ -71,6 +71,7 @@ async function handleUserRecord (userinfo, token) {
       console.log(result)
       return ({ message: 'login successful', redirectTo: 'http://localhost:8000/user/placeOrder' })
     }
+    await User.update({ emailID: userinfo.email }, { jwt: token })
     return ({ message: 'login successful', redirectTo: 'http://localhost:8000/user/placeOrder' })
   } catch (error) {
     console.error(error)
@@ -78,11 +79,24 @@ async function handleUserRecord (userinfo, token) {
   }
 }
 
-function signout (req, res) {
+async function signout (req, res) {
   if (req.isSignedIn) {
-    res.status(200).json({ message: 'you have been logged out successfully, to login please click on the link', link: url })
+    let deletion = await deleteJWTValue(req.emailID)
+    if (deletion) {
+      res.status(200).json({ message: 'you have been logged out successfully, to login please click on the link', link: url })
+    }
+    res.status(500).json({ message: 'logged out operation was unsuccessfull' })
   } else {
     res.status(401).json({ message: 'you are not logged in and you can login by clicking on the link', link: url })
+  }
+}
+
+async function deleteJWTValue (emailID) {
+  try {
+    await User.update({ emailID: emailID }, { jwt: null })
+    return true
+  } catch (error) {
+    return false
   }
 }
 
