@@ -35,19 +35,22 @@ async function getToken (req, res) {
   try {
     let tokenObj = await oauth2Client.getToken(req.query.code)
     oauth2Client.setCredentials(tokenObj.tokens)
+    oauth2.userinfo.v2.me.get((error, info) => { handleUserInfo(error, info, req, res) })
   } catch (error) {
     console.log(error)
   }
-  oauth2.userinfo.v2.me.get(handleUserInfo)
 }
 
-function handleUserInfo (error, info) {
+async function handleUserInfo (error, info, req, res) {
+  console.log(req.cookies)
   if (error) {
     console.error(error)
   } else {
     console.log(info.data)
     let token = jwt.sign({name: info.data.name, email: info.data.email}, privateKey)
-    handleUserRecord(info.data, token)
+    let result = await handleUserRecord(info.data, token)
+    res.cookie('access_token', token, { httpOnly: true })
+    res.status(200).json({ message: 'login successful', result })
   }
 }
 
@@ -60,8 +63,10 @@ async function handleUserRecord (userinfo, token) {
     })
     let result = await user.save()
     console.log(result)
+    return result
   } catch (error) {
     console.error(error)
+    return error
   }
 }
 
