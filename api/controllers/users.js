@@ -26,6 +26,14 @@ const url = oauth2Client.generateAuthUrl({
   scope: scopes
 })
 
+function handleHomePageRequest (req, res, next) {
+  if (req.isSignedIn) {
+    placeOrder(req, res)
+  } else {
+    next()
+  }
+}
+
 function placeOrder (req, res) {
   if (req.isSignedIn) {
     res.status(200).json({ message: 'you can place your order' })
@@ -99,4 +107,4 @@ async function deleteJWTValue (emailID) {
   }
 }
 
-module.exports = { getToken, placeOrder, url, signout }
+module.exports = { getToken, placeOrder, url, signout, handleHomePageRequest }
