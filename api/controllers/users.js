@@ -23,7 +23,6 @@ const oauth2 = google.oauth2({
 })
 
 const url = oauth2Client.generateAuthUrl({
-  access_type: 'offline',
   scope: scopes
 })
 
