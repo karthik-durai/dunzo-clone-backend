@@ -81,8 +81,8 @@ async function handleUserInfo (error, info, req, res) {
 
 async function handleUserRecord (userinfo, token) {
   try {
-    let dbSearch = (await User.findOne({ emailID: userinfo.email }).exec())
-    if (!dbSearch) {
+    let dbSearchResult = (await User.findOne({ emailID: userinfo.email }).exec())
+    if (!dbSearchResult) {
       let user = new User({
         name: userinfo.name,
         emailID: userinfo.email,
@@ -91,15 +91,12 @@ async function handleUserRecord (userinfo, token) {
       })
       let result = await user.save()
       console.log(result)
-      //  return ({ message: 'login successful', redirectTo: 'http://localhost:8000/user/placeOrder' })
       return true
     }
-    await User.update({ emailID: userinfo.email }, { jwt: token })
-    //  return ({ message: 'login successful', redirectTo: 'http://localhost:8000/user/placeOrder' })
+    await User.update({ emailID: userinfo.email }, { jwt: token, recentSignedIn: Date.now() })
     return true
   } catch (error) {
     console.error(error)
-    //  return ({ message: 'login not successful, click on the link to try again', link: url })
     return false
   }
 }
