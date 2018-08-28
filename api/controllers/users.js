@@ -105,6 +105,7 @@ async function signout (req, res) {
   if (req.isSignedIn) {
     let deletion = await deleteJWTValue(req.emailID)
     if (deletion) {
+      res.clearCookie('access_token', { path: '/' })
       res.status(200).json({ message: 'you have been logged out successfully, to login please click on the link', link: url })
     }
     res.status(500).json({ message: 'logged out operation was unsuccessfull' })
