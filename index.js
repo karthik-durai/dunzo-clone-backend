@@ -14,7 +14,7 @@ app.use(cookieParser())
 
 app.use('/', authenticate,
   handleHomePageRequest,
-  express.static(path.join(__dirname, 'views', 'public')))
+  express.static(path.join(__dirname, 'views', 'login')))
 
 app.use('/user', usersRoute)
 
