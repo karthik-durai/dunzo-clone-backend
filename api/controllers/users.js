@@ -30,16 +30,21 @@ const url = oauth2Client.generateAuthUrl({
 
 function handleHomePageRequest (req, res, next) {
   if (req.isSignedIn) {
-    placeOrder(req, res)
+    serveOrdersPage(req, res)
   } else {
     next()
   }
 }
 
+function serveOrdersPage (req, res) {
+  if (req.isSignedIn) {
+    res.status(200).sendFile(path.join(__dirname.slice(0, -15), 'views', 'orders', 'orders.html'))
+  }
+}
+
 function placeOrder (req, res) {
   if (req.isSignedIn) {
-    //  res.status(200).json({ message: 'you can place your order' })
-    res.status(200).sendFile(path.join(__dirname.slice(0, -15), 'views', 'orders'))
+    res.status(200).json({ message: 'you can place your order' })
   } else {
     res.status(401).json({ message: 'looks like you are not signed in, please sign in to continue', link: url })
   }
@@ -66,7 +71,7 @@ async function handleUserInfo (error, info, req, res) {
     //  res.status(200).json(result)
     if (result) {
       let dirname = __dirname.slice(0, -15)
-      res.sendFile(path.join(dirname, 'views', 'orders', 'orders.html'))
+      res.sendFile(path.join(dirname, 'views', 'redirection', 'redirection.html'))
       //  res.status(200).json({message: 'login successful'})
     } else {
       res.status(500).json({message: 'login not successful'})
@@ -120,4 +125,4 @@ async function deleteJWTValue (emailID) {
   }
 }
 
-module.exports = { getToken, placeOrder, url, signout, handleHomePageRequest }
+module.exports = { getToken, placeOrder, url, signout, handleHomePageRequest, serveOrdersPage }
