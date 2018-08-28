@@ -4,7 +4,6 @@ const {privateKey} = require('../../secrets/jwtPrivateKey')
 const jwt = require('jsonwebtoken')
 const User = require('../models/users')
 const path = require('path')
-const express = require('express')
 
 const redirectURI = 'http://localhost:8000/user/oauthcallback'
 
@@ -36,9 +35,15 @@ function handleHomePageRequest (req, res, next) {
   }
 }
 
-function serveOrdersPage (req, res) {
+function serveOrdersPage (req, res, next, jwToken) {
+  console.log('jwt', jwToken)
   if (req.isSignedIn) {
+    if (jwToken) {
+      res.cookie('access_token', jwToken, { httpOnly: true })
+    }
     res.status(200).sendFile(path.join(__dirname.slice(0, -15), 'views', 'orders', 'orders.html'))
+  } else {
+    res.status(401).json({message: 'please login'})
   }
 }
 
@@ -50,38 +55,47 @@ function placeOrder (req, res) {
   }
 }
 
-async function getToken (req, res) {
+async function handleUserInfo (req, res) {
   try {
-    let tokenObj = await oauth2Client.getToken(req.query.code)
-    oauth2Client.setCredentials(tokenObj.tokens)
-    oauth2.userinfo.v2.me.get((error, info) => { handleUserInfo(error, info, req, res) })
+    let tokenObj = await getAccessToken(req, res)
+    if (tokenObj) {
+      oauth2Client.setCredentials(tokenObj.tokens)
+      let userInfo = await getUserInfo()
+      let jwToken = jwt.sign({name: userInfo.data.name, email: userInfo.data.email}, privateKey)
+      await handleUserRecord(userInfo.data, jwToken)
+      req.isSignedIn = true
+      serveOrdersPage(req, res, null, jwToken)
+    }
   } catch (error) {
     console.log(error)
+    res.status(500).json({message: 'login not successful'})
   }
 }
 
-async function handleUserInfo (error, info, req, res) {
-  if (error) {
-    console.error(error)
-  } else {
-    console.log(info.data)
-    let token = jwt.sign({name: info.data.name, email: info.data.email}, privateKey)
-    let result = await handleUserRecord(info.data, token)
-    res.cookie('access_token', token, { httpOnly: true })
-    //  res.status(200).json(result)
-    if (result) {
-      let dirname = __dirname.slice(0, -15)
-      res.sendFile(path.join(dirname, 'views', 'redirection', 'redirection.html'))
-      //  res.status(200).json({message: 'login successful'})
-    } else {
-      res.status(500).json({message: 'login not successful'})
-    }
+async function getAccessToken (req, res) {
+  try {
+    let tokenObj = await oauth2Client.getToken(req.query.code)
+    return tokenObj
+  } catch (error) {
+    return null
   }
+}
+
+function getUserInfo () {
+  return new Promise((resolve, reject) => {
+    oauth2.userinfo.v2.me.get((error, info) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(info)
+      }
+    })
+  })
 }
 
 async function handleUserRecord (userinfo, token) {
   try {
-    let dbSearchResult = (await User.findOne({ emailID: userinfo.email }).exec())
+    let dbSearchResult = await User.findOne({ emailID: userinfo.email }).exec()
     if (!dbSearchResult) {
       let user = new User({
         name: userinfo.name,
@@ -89,15 +103,11 @@ async function handleUserRecord (userinfo, token) {
         profilePicture: userinfo.picture,
         jwt: token
       })
-      let result = await user.save()
-      console.log(result)
-      return true
+      return (await user.save())
     }
-    await User.update({ emailID: userinfo.email }, { jwt: token, recentSignedIn: Date.now() })
-    return true
+    return (await User.update({ emailID: userinfo.email }, { jwt: token, recentSignedIn: Date.now() }))
   } catch (error) {
-    console.error(error)
-    return false
+    return new Error(error)
   }
 }
 
@@ -123,4 +133,4 @@ async function deleteJWTValue (emailID) {
   }
 }
 
-module.exports = { getToken, placeOrder, url, signout, handleHomePageRequest, serveOrdersPage }
+module.exports = { handleUserInfo, placeOrder, url, signout, handleHomePageRequest, serveOrdersPage }
