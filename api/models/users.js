@@ -6,7 +6,9 @@ const userSchema = new mongoose.Schema({
   profilePicture: { type: String, default: null },
   currentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   pastOrders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
-  jwt: { type: String, default: null }
+  jwt: { type: String, default: null },
+  firstSignedIn: { type: Date, default: Date() },
+  recentSignedIn: { type: Date, default: Date() }
 })
 
 module.exports = mongoose.model('User', userSchema)
