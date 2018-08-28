@@ -3,6 +3,7 @@ const {google} = require('googleapis')
 const {privateKey} = require('../../secrets/jwtPrivateKey')
 const jwt = require('jsonwebtoken')
 const User = require('../models/users')
+const path = require('path')
 
 const redirectURI = 'http://localhost:8000/user/oauthcallback'
 

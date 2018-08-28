@@ -8,7 +8,6 @@ async function authenticate (req, res, next) {
     req.isSignedIn = await checkForJWT(decodedJWT)
     req.emailID = decodedJWT.email
   } catch (error) {
-    console.error(error)
     req.isSignedIn = false
   }
   next()
