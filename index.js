@@ -5,11 +5,13 @@ const path = require('path')
 const mongoose = require('mongoose')
 const cookieParser = require('cookie-parser')
 const morgan = require('morgan')
+const cors = require('cors')
 const { authenticate } = require('./api/authentication/authenticate')
 const { handleHomePageRequest } = require('./api/controllers/users')
 
 const usersRoute = require('./api/routes/users')
 
+app.use(cors())
 app.use(morgan('dev'))
 app.use(bodyParser.json())
 app.use(cookieParser())

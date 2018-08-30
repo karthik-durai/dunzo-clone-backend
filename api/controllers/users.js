@@ -133,4 +133,14 @@ async function deleteJWTValue (emailID) {
   }
 }
 
-module.exports = { handleUserInfo, placeOrder, url, signout, handleHomePageRequest, serveOrdersPage }
+function giveLoginURL (req, res) {
+  res.status(200).json({url: url})
+}
+
+module.exports = { handleUserInfo,
+  placeOrder,
+  url,
+  signout,
+  handleHomePageRequest,
+  serveOrdersPage,
+  giveLoginURL }
