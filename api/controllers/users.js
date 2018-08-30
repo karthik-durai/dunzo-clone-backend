@@ -36,7 +36,6 @@ function handleHomePageRequest (req, res, next) {
 }
 
 function serveOrdersPage (req, res, next, jwToken) {
-  console.log('jwt', jwToken)
   if (req.isSignedIn) {
     if (jwToken) {
       res.cookie('access_token', jwToken, { httpOnly: true })
@@ -137,10 +136,12 @@ function giveLoginURL (req, res) {
   res.status(200).json({url: url})
 }
 
-module.exports = { handleUserInfo,
+module.exports = {
+  handleUserInfo,
   placeOrder,
   url,
   signout,
   handleHomePageRequest,
   serveOrdersPage,
-  giveLoginURL }
+  giveLoginURL
+}
