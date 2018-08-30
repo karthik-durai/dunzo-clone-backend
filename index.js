@@ -19,8 +19,11 @@ app.use(cookieParser())
 app.use('/user', usersRoute)
 
 app.use('/', authenticate,
-  handleHomePageRequest,
-  express.static(path.join(__dirname, 'views', 'login')))
+  handleHomePageRequest)
+
+// app.use('/', authenticate,
+//   handleHomePageRequest,
+//   express.static(path.join(__dirname, 'views', 'login')))
 
 mongoose.connect('mongodb://localhost:27017/dunzoClone', { useNewUrlParser: true })
 
