@@ -40,7 +40,8 @@ function serveOrdersPage (req, res, next, jwToken) {
     if (jwToken) {
       res.cookie('access_token', jwToken, { httpOnly: true })
     }
-    res.status(200).sendFile(path.join(__dirname.slice(0, -15), 'views', 'orders', 'orders.html'))
+    //  res.status(200).sendFile(path.join(__dirname.slice(0, -15), 'views', 'orders', 'orders.html'))
+    res.redirect(301, 'http://localhost:8080/orders.html')
   } else {
     res.status(401).json({message: 'please login'})
   }
