@@ -1,13 +1,16 @@
 const router = require('express').Router()
 const urlEncodedParser = require('body-parser').urlencoded({ extended: false })
-const usersController = require('../controllers/users')
 const { authenticate } = require('../authentication/authenticate')
+const usersController = require('../controllers/users')
 
-router.get('/', authenticate, usersController.serveOrdersPage)
+// doesn't need authentication middleware
 router.get('/oauthcallback', usersController.handleUserInfo)
-router.post('/placeorder', authenticate, urlEncodedParser, usersController.placeOrder)
 router.get('/getOrders', usersController.getOrders)
+router.get('/getOrderDetails', usersController.getOrderDetails)
+router.get('/getLoginURL', usersController.getLoginURL)
+
+// Needs authentication middleware
+router.post('/placeorder', authenticate, urlEncodedParser, usersController.placeOrder)
 router.get('/signout', authenticate, usersController.signout)
-router.get('/loginURL', usersController.giveLoginURL)
 
 module.exports = router

@@ -32,7 +32,6 @@ function handleHomePageRequest (req, res, next) {
   if (req.isSignedIn) {
     serveOrdersPage(req, res)
   } else {
-    console.log('serve login page')
     res.redirect(301, 'http://localhost:8080/userLogin.html')
   }
 }
@@ -119,7 +118,7 @@ async function handleUserRecord (userinfo, token) {
   }
 }
 
-async function signout (req, res) {
+async function signoutUser (req, res) {
   if (req.isSignedIn) {
     let deletion = await deleteJWTValue(req.emailID)
     if (deletion) {
@@ -141,28 +140,37 @@ async function deleteJWTValue (emailID) {
   }
 }
 
-function giveLoginURL (req, res) {
+function getLoginURL (req, res) {
   res.status(200).json({url: url})
 }
 
 async function getOrders (req, res) {
   try {
     let orders = await Order.find().exec()
-    console.log('hurr:', orders)
-    res.send(200).json({ message: orders })
+    res.json({ message: orders })
   } catch (err) {
-    console.log('hmm:', err)
-    res.send(500).json({ message: 'no records found' })
+    res.json({ message: 'no records found' })
   }
+}
+
+async function getOrderDetails (req, res) {
+  console.log(req)
+  // try {
+  //   let orderDetails = await Order.findOne({ description: req.body.description }).exec()
+  //   console.log(orderDetails)
+  //   res.json({ details: orderDetails })
+  // } catch (err) {
+  //   res.json({ message: 'no details found' })
+  // }
 }
 
 module.exports = {
   handleUserInfo,
   placeOrder,
-  url,
-  signout,
+  signoutUser,
   handleHomePageRequest,
   serveOrdersPage,
-  giveLoginURL,
-  getOrders
+  getLoginURL,
+  getOrders,
+  getOrderDetails
 }
