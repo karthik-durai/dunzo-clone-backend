@@ -11,6 +11,6 @@ router.get('/getLoginURL', usersController.getLoginURL)
 
 // Needs authentication middleware
 router.post('/placeorder', authenticate, urlEncodedParser, usersController.placeOrder)
-router.get('/signout', authenticate, usersController.signout)
+router.get('/signout', authenticate, usersController.signoutUser)
 
 module.exports = router
