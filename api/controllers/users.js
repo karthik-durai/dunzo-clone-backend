@@ -3,6 +3,7 @@ const {google} = require('googleapis')
 const {privateKey} = require('../../secrets/jwtPrivateKey')
 const jwt = require('jsonwebtoken')
 const User = require('../models/users')
+const Order = require('../models/orders')
 const path = require('path')
 
 const redirectURI = 'http://localhost:8000/user/oauthcallback'
@@ -47,11 +48,18 @@ function serveOrdersPage (req, res, next, jwToken) {
   }
 }
 
-function placeOrder (req, res) {
-  if (req.isSignedIn) {
-    res.status(200).json({ message: 'you can place your order' })
-  } else {
-    res.status(401).json({ message: 'looks like you are not signed in, please sign in to continue', link: url })
+async function placeOrder (req, res) {
+  try {
+    if (req.isSignedIn) {
+      let order = new Order({
+        description: req.body.description,
+        user: (await User.findOne({ emailID: req.emailID }).exec())._id
+      })
+      await order.save()
+      res.redirect(301, 'http://localhost:8080/orders.html#/showOrders')
+    }
+  } catch (err) {
+    console.error('err0r:', err)
   }
 }
 
@@ -137,6 +145,17 @@ function giveLoginURL (req, res) {
   res.status(200).json({url: url})
 }
 
+async function getOrders (req, res) {
+  try {
+    let orders = await Order.find().exec()
+    console.log('hurr:', orders)
+    res.send(200).json({ message: orders })
+  } catch (err) {
+    console.log('hmm:', err)
+    res.send(500).json({ message: 'no records found' })
+  }
+}
+
 module.exports = {
   handleUserInfo,
   placeOrder,
@@ -144,5 +163,6 @@ module.exports = {
   signout,
   handleHomePageRequest,
   serveOrdersPage,
-  giveLoginURL
+  giveLoginURL,
+  getOrders
 }
