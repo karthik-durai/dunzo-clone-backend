@@ -1,49 +1,17 @@
-const {clientCredentials} = require('../../secrets/googleOauthCredentials')
-const {google} = require('googleapis')
-const {privateKey} = require('../../secrets/jwtPrivateKey')
 const jwt = require('jsonwebtoken')
 const User = require('../models/users')
 const Order = require('../models/orders')
-const path = require('path')
+const { privateKey } = require('../../secrets/jwtPrivateKey')
+const { oauth2Client, oauth2, url } = require('../../oAuth/oAuthGoogle')
 
-const redirectURI = 'http://localhost:8000/user/oauthcallback'
-
-const scopes = ['https://www.googleapis.com/auth/plus.me',
-  'https://www.googleapis.com/auth/userinfo.email',
-  'https://www.googleapis.com/auth/userinfo.profile'
-]
-
-const oauth2Client = new google.auth.OAuth2(
-  clientCredentials.clientID,
-  clientCredentials.clientSecret,
-  redirectURI
-)
-
-const oauth2 = google.oauth2({
-  auth: oauth2Client,
-  version: 'v2'
-})
-
-const url = oauth2Client.generateAuthUrl({
-  scope: scopes
-})
-
-function handleHomePageRequest (req, res, next) {
-  if (req.isSignedIn) {
-    serveOrdersPage(req, res)
-  } else {
-    res.redirect(301, 'http://localhost:8080/userLogin.html')
-  }
-}
-
-function serveOrdersPage (req, res, next, jwToken) {
+function serveAppropriatePage (req, res, next, jwToken, statusCode) {
   if (req.isSignedIn) {
     if (jwToken) {
-      res.cookie('access_token', jwToken, { httpOnly: true })
+      // res.cookie('access_token', jwToken, { httpOnly: true })
     }
-    res.redirect(301, 'http://localhost:8080/orders.html')
+    //  res.redirect('http://localhost:8000/user/placeOrders')
   } else {
-    res.redirect(301, 'http://localhost:8080/userLogin.html')
+    //  res.redirect('http://localhost:8000/login')
   }
 }
 
@@ -55,10 +23,11 @@ async function placeOrder (req, res) {
         user: (await User.findOne({ emailID: req.emailID }).exec())._id
       })
       await order.save()
-      res.redirect(301, 'http://localhost:8080/orders.html#/showOrders')
+      //  res.redirect('http://localhost:8000/orders/showOrders')
     }
   } catch (err) {
     console.error('err0r:', err)
+    // send message to user that order didn't get placed
   }
 }
 
@@ -71,11 +40,11 @@ async function handleUserInfo (req, res) {
       let jwToken = jwt.sign({name: userInfo.data.name, email: userInfo.data.email}, privateKey)
       await handleUserRecord(userInfo.data, jwToken)
       req.isSignedIn = true
-      serveOrdersPage(req, res, null, jwToken)
+      serveAppropriatePage(req, res, null, jwToken, 200)
     }
   } catch (error) {
     console.log(error)
-    res.status(500).json({message: 'login not successful'})
+    serveAppropriatePage(req, res, null, jwToken, 500)
   }
 }
 
@@ -140,11 +109,11 @@ async function deleteJWTValue (emailID) {
   }
 }
 
-function getLoginURL (req, res) {
+function getLoginURLAndSend (req, res) {
   res.status(200).json({url: url})
 }
 
-async function getOrders (req, res) {
+async function getOrdersAndSend (req, res) {
   try {
     let orders = await Order.find().exec()
     res.json({ message: orders })
@@ -153,7 +122,7 @@ async function getOrders (req, res) {
   }
 }
 
-async function getOrderDetails (req, res) {
+async function getOrderDetailsAndSend (req, res) {
   console.log(req)
   // try {
   //   let orderDetails = await Order.findOne({ description: req.body.description }).exec()
@@ -168,9 +137,8 @@ module.exports = {
   handleUserInfo,
   placeOrder,
   signoutUser,
-  handleHomePageRequest,
-  serveOrdersPage,
-  getLoginURL,
-  getOrders,
-  getOrderDetails
+  serveAppropriatePage,
+  getLoginURLAndSend,
+  getOrdersAndSend,
+  getOrderDetailsAndSend
 }
