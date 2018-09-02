@@ -14,10 +14,9 @@ app.use(morgan('dev'))
 app.use(bodyParser.json())
 app.use(cookieParser())
 
-app.use('/user', usersRoute)
+app.use('/', authenticate, serveAppropriatePage)
 
-app.use('/', authenticate,
-  serveAppropriatePage)
+app.use('/user', usersRoute)
 
 // app.use('/', authenticate,
 //   handleHomePageRequest,

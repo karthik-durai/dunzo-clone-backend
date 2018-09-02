@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken')
-const User = require('../models/users')
-const { privateKey } = require('../../secrets/jwtPrivateKey')
+const User = require('../api/models/users')
+const { privateKey } = require('../secrets/jwtPrivateKey')
 
 async function authenticate (req, res, next) {
   try {
-    var decodedJWT = jwt.verify(req.cookies.access_token, privateKey)
+    let decodedJWT = jwt.verify(req.cookies.access_token, privateKey)
     req.isSignedIn = await checkForJWT(decodedJWT, req.cookies.access_token)
     req.emailID = decodedJWT.email
   } catch (error) {

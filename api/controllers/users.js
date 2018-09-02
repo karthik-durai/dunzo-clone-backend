@@ -10,8 +10,10 @@ function serveAppropriatePage (req, res, next, jwToken, statusCode) {
       // res.cookie('access_token', jwToken, { httpOnly: true })
     }
     //  res.redirect('http://localhost:8000/user/placeOrders')
+    res.status(200).json({ message: 'login sucessful' })
   } else {
     //  res.redirect('http://localhost:8000/login')
+    res.status(200).json({ link: url })
   }
 }
 
@@ -44,7 +46,8 @@ async function handleUserInfo (req, res) {
     }
   } catch (error) {
     console.log(error)
-    serveAppropriatePage(req, res, null, jwToken, 500)
+    req.isSignedIn = false
+    serveAppropriatePage(req, res, null, null, 500)
   }
 }
 
